@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- PROBĂ: site-ul (index.html) rulează în interior; după 10 minute fără activitate apare un cub de sticlă 3D
+       („screensaver”). Click pe cub = cubul se rotește mai departe, camera plonjează în el, iar site-ul real
+       iese lin din centrul cubului, exact cum era (fără loading).
+       Test rapid: /cub?idle=5 (secunde în loc de 10 minute). -->
+  <title>ianisgfx — cub (probă)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #0e0a0a; }
+    canvas { position: fixed; inset: 0; display: block; visibility: hidden; opacity: 0; }
+    .site { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; z-index: 1; background: #0e0a0a; }
+    /* textul mic: aceeași dispersie de culori ca sticla, deplasată după înclinarea cubului (--dx, --dy) */
+    .hint {
+      position: fixed; left: 50%; bottom: 7vh; translate: -50% 0; margin: 0; z-index: 2; pointer-events: none; opacity: 0;
+      font: 500 .78rem/1 Manrope, sans-serif; letter-spacing: .35em; text-transform: uppercase; color: #f5ede6; white-space: nowrap;
+      --dx: 1px; --dy: 0px;
+      text-shadow: calc(var(--dx) * -1) calc(var(--dy) * -1) 0 rgba(60, 170, 255, .75), var(--dx) var(--dy) 0 rgba(255, 70, 60, .8);
+    }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+                   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+</head>
+<body>
+  <iframe class="site" src="index.html" title="ianisgfx"></iframe>
+  <canvas id="c"></canvas>
+  <p class="hint">Apasă pe cub pentru a reintra</p>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+    import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+    gsap.ticker.lagSmoothing(0); // după un tab în fundal animațiile sar la timpul real, nu se târăsc
+    const IDLE_MS = (+new URLSearchParams(location.search).get("idle") || 600) * 1000;
+    const site = document.querySelector(".site"), hint = document.querySelector(".hint");
+
+    // ---------- scena ----------
+    const canvas = document.getElementById("c");
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); // sticla randează scena de două ori: 2x e prea greu
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0e0a0a);
+    scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.02).texture;
+    const FOV = 35, CAM_Z = 10;
+    const camera = new THREE.PerspectiveCamera(FOV, 1, 0.02, 100);
+    const tanHalf = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+
+    // ---------- textul din spate (opac, altfel sticla nu-l refractă); literele urcă din mască una câte una ----------
+    // toate fonturile site-ului: copia paginii (snapshot) le desenează în canvas, unde un font neîncărcat nu apare
+    await Promise.all(["800 100px Syne", "700 1px Syne", "500 1px Syne", "400 1px Manrope", "500 1px Manrope", "600 1px Manrope"].map((f) => document.fonts.load(f)));
+    const tc = document.createElement("canvas");
+    tc.width = 2048; tc.height = 1024; // se re-urcă pe GPU la fiecare cadru cât apar literele
+    const g = tc.getContext("2d");
+    const LINES = [["REINTRĂ", "#f5ede6", -1], ["PE SITE", "#ff4f45", 1]]; // -1 / 1: rândul de sus / de jos
+    const TOTAL = LINES.reduce((a, [s]) => a + [...s].length, 0);
+    g.font = "800 100px Syne";
+    const FONT = (tc.width * 0.94 * 100) / Math.max(...LINES.map(([s]) => g.measureText(s).width * 0.96));
+    const tex = new THREE.CanvasTexture(tc);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    const expo = gsap.parseEase("expo.out");
+    const drawText = (p) => { // p: 0 = ascuns, 1 = tot textul
+      g.fillStyle = "#0e0a0a"; g.fillRect(0, 0, tc.width, tc.height);
+      g.font = `800 ${FONT}px Syne`; g.textBaseline = "middle";
+      let n = 0;
+      LINES.forEach(([s, color, row]) => {
+        const y = tc.height / 2 + row * FONT * 0.5;
+        const chars = [...s], widths = chars.map((c) => g.measureText(c).width * 0.96);
+        let x = (tc.width - widths.reduce((a, b) => a + b)) / 2;
+        g.save();
+        g.beginPath(); g.rect(0, y - FONT * 0.62, tc.width, FONT * 1.2); g.clip(); // masca rândului
+        g.fillStyle = color;
+        chars.forEach((c, i) => {
+          // fiecare literă are jumătate din durată; pornirile sunt eșalonate pe cealaltă jumătate
+          const k = expo(gsap.utils.clamp(0, 1, (p - (n++ / TOTAL) * 0.5) * 2));
+          g.fillText(c, x, y + (1 - k) * FONT * 1.1);
+          x += widths[i];
+        });
+        g.restore();
+      });
+      tex.needsUpdate = true;
+    };
+    drawText(0);
+    const text = new THREE.Mesh(new THREE.PlaneGeometry(1, tc.height / tc.width), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+    text.position.z = -3;
+    scene.add(text);
+
+    // ---------- cubul: sticlă curată, margini netede, refracție și dispersie ca în referință ----------
+    const SIZE = 2.3;
+    const tilt = new THREE.Group(); // înclinarea după cursor + plutirea
+    scene.add(tilt);
+    const cube = new THREE.Mesh(
+      new RoundedBoxGeometry(SIZE, SIZE, SIZE, 16, 0.3),
+      new THREE.MeshPhysicalMaterial({
+        transmission: 1, thickness: 2.4, roughness: 0, ior: 1.55, dispersion: 9,
+        attenuationColor: new THREE.Color(0xc9c2c2), attenuationDistance: 9,
+        clearcoat: 1, clearcoatRoughness: 0, envMapIntensity: 1.4, specularIntensity: 1,
+      })
+    );
+    tilt.add(cube);
+
+    // ---------- scena următoare: site-ul, văzut DOAR prin refracția cubului ----------
+    // Un plan în spatele cubului cu copia paginii: pe ecran nu se desenează (discard), dar apare în trecerea
+    // de transmisie a sticlei - deci site-ul există numai în refracție. La intrare refracția se relaxează
+    // (ior → 1, grosime → 0) și ce se vede prin sticlă devine exact pagina, apoi apare site-ul real.
+    const shot = document.createElement("canvas");
+    const shotTex = new THREE.CanvasTexture(shot);
+    shotTex.colorSpace = THREE.SRGBColorSpace;
+    const pageMat = new THREE.ShaderMaterial({
+      uniforms: { map: { value: shotTex }, show: { value: 0 }, inGlass: { value: 0 } },
+      vertexShader: "varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+      fragmentShader: `
+        uniform sampler2D map; uniform float show, inGlass; varying vec2 vUv;
+        float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float n(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+          return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + 1.), f.x), f.y); }
+        void main() {
+          // pagina se „topește” în sticlă din centru spre margini, cu contur neregulat (zgomot)
+          float t = length(vUv - .5) * 1.2 + (n(vUv * 6.) * .5 + n(vUv * 13.) * .25) * .5;
+          float m = show * 1.75 - t;
+          if (inGlass < .5 || m < 0.) discard;      // pe ecran: nimic; în sticlă: pagina
+          vec3 c = texture2D(map, vUv).rgb;
+          c += vec3(1., .31, .27) * smoothstep(.12, 0., m) * 1.4 * (1. - show); // marginea roșie a dizolvării
+          gl_FragColor = vec4(c, 1.);
+        }`,
+    });
+    const page = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), pageMat);
+    page.position.z = -2.95; // chiar în fața textului
+    // trecerea sticlei randează într-un render target; pe ecran ținta e null
+    page.onBeforeRender = (r) => {
+      pageMat.uniforms.inGlass.value = r.getRenderTarget() ? 1 : 0;
+      pageMat.uniformsNeedUpdate = true;
+    };
+    scene.add(page);
+
+    // Desenează în `shot` ce se vede acum în site: fundal, butoane, imagini și fiecare cuvânt la poziția lui.
+    // Se face la click (~6 ms: stilurile se citesc o singură dată pe element), deci e exact pagina de atunci.
+    function snapshot() {
+      const doc = site.contentDocument, win = site.contentWindow;
+      const W = 1920, H = Math.round((W * innerHeight) / innerWidth), k = W / innerWidth;
+      shot.width = W; shot.height = H;
+      const c = shot.getContext("2d");
+      c.setTransform(k, 0, 0, k, 0, 0);
+      c.fillStyle = "#0e0a0a"; c.fillRect(0, 0, innerWidth, innerHeight);
+      // fundalul lichid nu se poate copia (e WebGL în alt context): îl imităm cu pete roșii estompate
+      [[0.7, 0.25, 0.6, "rgba(160,25,30,.55)"], [0.25, 0.7, 0.5, "rgba(120,15,22,.5)"], [0.55, 0.6, 0.35, "rgba(255,79,69,.18)"]]
+        .forEach(([x, y, r, col]) => {
+          const R = Math.max(innerWidth, innerHeight) * r, gr = c.createRadialGradient(x * innerWidth, y * innerHeight, 0, x * innerWidth, y * innerHeight, R);
+          gr.addColorStop(0, col); gr.addColorStop(1, "rgba(14,10,10,0)");
+          c.fillStyle = gr; c.fillRect(0, 0, innerWidth, innerHeight);
+        });
+      const styles = new Map(), opac = new Map();
+      const css = (el) => styles.get(el) || (styles.set(el, win.getComputedStyle(el)), styles.get(el));
+      const op = (el) => { // opacitatea reală (cu a părinților); 0 = ascuns
+        if (!el || el === doc.documentElement) return 1;
+        if (opac.has(el)) return opac.get(el);
+        const s = css(el), v = s.display === "none" || s.visibility === "hidden" ? 0 : +s.opacity * op(el.parentElement);
+        opac.set(el, v);
+        return v;
+      };
+      const onScreen = (r) => r.width > 0 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
+      for (const el of doc.body.querySelectorAll("*")) {
+        if (el.matches(".preloader, .preloader *, .cursor, canvas, script, style")) continue;
+        const r = el.getBoundingClientRect();
+        if (!onScreen(r)) continue;
+        const o = op(el);
+        if (!o) continue;
+        const cs = css(el);
+        c.globalAlpha = o;
+        if (cs.backgroundColor !== "rgba(0, 0, 0, 0)" && cs.backgroundColor !== "transparent") {
+          c.fillStyle = cs.backgroundColor;
+          c.beginPath(); c.roundRect(r.left, r.top, r.width, r.height, Math.min(parseFloat(cs.borderTopLeftRadius) || 0, r.height / 2)); c.fill();
+        }
+        if (el.tagName === "IMG" && el.complete) c.drawImage(el, r.left, r.top, r.width, r.height);
+        // cercul roșu cu săgeată din butoane e desenat prin CSS (::before + svg), deci îl refacem de mână
+        if (el.matches(".btn__icon")) {
+          const cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width / 2;
+          c.fillStyle = "#ff4f45"; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
+          c.strokeStyle = "#fff"; c.lineWidth = R * 0.09; c.lineCap = "round"; c.beginPath();
+          c.moveTo(cx - R * 0.25, cy + R * 0.25); c.lineTo(cx + R * 0.25, cy - R * 0.25);
+          c.moveTo(cx - R * 0.12, cy - R * 0.25); c.lineTo(cx + R * 0.25, cy - R * 0.25); c.lineTo(cx + R * 0.25, cy + R * 0.12);
+          c.stroke();
+        }
+      }
+      const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+      const range = doc.createRange();
+      for (let node; (node = walker.nextNode()); ) {
+        const el = node.parentElement;
+        if (!node.data.trim() || el.closest(".preloader, script, style")) continue;
+        const o = op(el);
+        if (!o) continue;
+        const cs = css(el);
+        c.globalAlpha = o;
+        c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        c.fillStyle = cs.color;
+        c.letterSpacing = cs.letterSpacing === "normal" ? "0px" : cs.letterSpacing;
+        c.textBaseline = "middle";
+        for (const m of node.data.matchAll(/\S+/g)) {
+          range.setStart(node, m.index); range.setEnd(node, m.index + m[0].length);
+          const r = range.getBoundingClientRect();
+          if (!onScreen(r)) continue;
+          c.fillText(cs.textTransform === "uppercase" ? m[0].toUpperCase() : m[0], r.left, r.top + r.height / 2);
+        }
+      }
+      c.globalAlpha = 1;
+      shotTex.dispose(); // canvasul și-a schimbat mărimea: textura se realocă pe GPU
+      shotTex.needsUpdate = true;
+    }
+
+    const resize = () => {
+      renderer.setSize(innerWidth, innerHeight, false);
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      // textul e mai lat decât cubul (ca în referință); pe ecrane înguste totul se micșorează
+      const h = 2 * tanHalf * (CAM_Z - text.position.z);
+      const w = Math.min(h * camera.aspect * 0.92, h * 1.5);
+      text.scale.set(w, w, 1);
+      tilt.scale.setScalar(Math.min(1, camera.aspect * 1.1));
+    };
+    resize();
+    addEventListener("resize", resize);
+
+    // Încălzire: shaderele sticlei se compilează acum, la încărcare (canvasul e ascuns), nu în prima secundă a
+    // apariției cubului - acolo era sacadarea de la început
+    camera.position.set(0, 0, CAM_Z);
+    renderer.render(scene, camera);
+
+    // ---------- mișcare (amortizată după timp: la fel de lină la orice fps) ----------
+    const pointer = new THREE.Vector2(), ray = new THREE.Raycaster();
+    const damp = (a, b, k, dt) => a + (b - a) * (1 - Math.exp(-k * dt));
+    let state = "site"; // site | cube | entering
+    let hover = false, spin = 0.3, follow = 1;
+    const lift = { y: 0 };
+    const hit = (x, y) => {
+      ray.setFromCamera(new THREE.Vector2((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
+      return ray.intersectObject(cube).length > 0;
+    };
+    addEventListener("pointermove", (e) => {
+      pointer.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+      hover = state === "cube" && hit(e.clientX, e.clientY);
+      document.body.style.cursor = hover ? "pointer" : "";
+    });
+
+    const clock = new THREE.Clock();
+    const loop = () => {
+      const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+      cube.rotation.y += dt * spin;
+      cube.rotation.x += dt * spin * 0.35;
+      // follow: 1 = urmărește cursorul și plutește; 0 = drept (la intrare)
+      tilt.rotation.x = damp(tilt.rotation.x, -pointer.y * 0.4 * follow, 2.5, dt);
+      tilt.rotation.y = damp(tilt.rotation.y, pointer.x * 0.6 * follow, 2.5, dt);
+      tilt.position.y = Math.sin(t * 0.9) * 0.07 * follow + lift.y;
+      const s = state === "cube" && hover ? 1.04 : 1;
+      cube.scale.setScalar(damp(cube.scale.x, s, 6, dt));
+      hint.style.setProperty("--dx", (1 + tilt.rotation.y * 3).toFixed(2) + "px");
+      hint.style.setProperty("--dy", (tilt.rotation.x * 2).toFixed(2) + "px");
+      renderer.render(scene, camera);
+    };
+
+    // ---------- inactivitate ----------
+    let idleTimer;
+    const wake = () => { clearTimeout(idleTimer); if (state === "site") idleTimer = setTimeout(showCube, IDLE_MS); };
+    const EVENTS = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart", "scroll"];
+    site.addEventListener("load", () => {
+      EVENTS.forEach((e) => site.contentWindow.addEventListener(e, wake, { passive: true, capture: true }));
+      wake();
+    });
+
+    // Apariția: site-ul se estompează și se depărtează puțin, scena apare peste el; cubul urcă lin și
+    // își încetinește rotirea, camera se apropie ușor, iar textul urcă literă cu literă în spate
+    function showCube() {
+      state = "cube";
+      const txt = { p: 0 }, s = { v: 2.2 };
+      camera.position.set(0, 0, CAM_Z + 3); camera.lookAt(0, 0, 0);
+      lift.y = -2.6; spin = 2.2; follow = 1;
+      cube.rotation.set(0.4, -0.6, 0);
+      canvas.style.visibility = "visible";
+      clock.getDelta();
+      renderer.setAnimationLoop(loop);
+      gsap.timeline()
+        .to(site, { opacity: 0, scale: 0.94, duration: 1.6, ease: "power2.inOut" }, 0)
+        .set(site, { visibility: "hidden", pointerEvents: "none" }) // altfel iframe-ul ascuns tot prinde click-urile
+        .to(canvas, { opacity: 1, duration: 1.6, ease: "power2.inOut" }, 0)
+        .to(camera.position, { z: CAM_Z, duration: 3, ease: "power3.out" }, 0)
+        .to(lift, { y: 0, duration: 2.6, ease: "expo.out" }, 0.3)
+        .to(s, { v: 0.3, duration: 3, ease: "power2.out", onUpdate: () => (spin = s.v) }, 0.3)
+        .to(txt, { p: 1, duration: 1.8, ease: "none", onUpdate: () => drawText(txt.p) }, 0.9)
+        .to(hint, { opacity: 1, duration: 1 }, 2.2);
+    }
+
+    // Intrarea (≈2.3 s): site-ul se topește în interiorul sticlei (doar în refracție), camera dă un mic recul
+    // și plonjează rapid în cub, cu un puls de FOV; cubul se rotește mai departe și ajunge cu o față spre
+    // cameră exact când ea ajunge la el. Pe ultimii centimetri refracția se relaxează (ior → 1, grosime → 0),
+    // deci ce se vede prin sticlă devine exact pagina - apoi apare site-ul real peste.
+    const GLASS = { ior: 1.55, thickness: 2.4, dispersion: 9, envMapIntensity: 1.4, clearcoat: 1, specularIntensity: 1, attenuationDistance: 9 };
+    const fov = { v: FOV };
+    const setFov = () => { camera.fov = fov.v; camera.updateProjectionMatrix(); };
+    addEventListener("click", (e) => {
+      if (state !== "cube" || !hit(e.clientX, e.clientY)) return;
+      state = "entering";
+      document.body.style.cursor = "";
+      snapshot();
+      const sc = tilt.scale.x;
+      // camera se oprește chiar în fața feței cubului; acolo planul cu pagina umple exact cadrul
+      const camEnd = (SIZE / 2 + 0.08) * sc;
+      const h = 2 * tanHalf * (camEnd - page.position.z);
+      page.scale.set(h * camera.aspect, h, 1);
+      // fața spre cameră: următorul sfert de tură pe x, încă o jumătate de tură pe y (rotirea continuă)
+      const q = Math.PI / 2;
+      const rx = Math.ceil(cube.rotation.x / q + 0.5) * q, ry = Math.ceil(cube.rotation.y / q + 1.5) * q;
+      spin = 0;
+      const f = { v: follow };
+      gsap.timeline({ onComplete: hideCube })
+        .to(hint, { opacity: 0, duration: 0.3 }, 0)
+        .to(f, { v: 0, duration: 0.8, ease: "power2.out", onUpdate: () => (follow = f.v) }, 0)
+        .to(lift, { y: 0, duration: 0.8, ease: "power2.out" }, 0)
+        .to(pageMat.uniforms.show, { value: 1, duration: 1.1, ease: "power2.inOut" }, 0.05)
+        .to(cube.rotation, { x: rx, y: ry, z: 0, duration: 1.75, ease: "power3.inOut" }, 0)
+        .to(camera.position, { z: CAM_Z + 0.7, duration: 0.45, ease: "power2.out" }, 0)
+        .to(camera.position, { z: camEnd, duration: 1.3, ease: "expo.in" }, 0.45)
+        .to(fov, { v: FOV + 9, duration: 0.85, ease: "power2.in", onUpdate: setFov }, 0.45)
+        .to(fov, { v: FOV, duration: 0.45, ease: "power3.out", onUpdate: setFov }, 1.3)
+        .to(cube.material, { ...GLASS, ior: 1, thickness: 0, dispersion: 0.01, envMapIntensity: 0, clearcoat: 0.001,
+          specularIntensity: 0, attenuationDistance: 1000, duration: 0.75, ease: "power2.inOut" }, 1.3)
+        .set(site, { visibility: "visible", zIndex: 3, opacity: 0, scale: 1, pointerEvents: "none" }, 2.05)
+        .to(site, { opacity: 1, duration: 0.3, ease: "power1.inOut" }, 2.05);
+    });
+
+    function hideCube() {
+      renderer.setAnimationLoop(null);
+      gsap.set(canvas, { opacity: 0, visibility: "hidden" });
+      gsap.set(site, { clearProps: "opacity,scale,pointerEvents,visibility,zIndex" });
+      drawText(0);
+      Object.assign(cube.material, GLASS); // dispersion/clearcoat nu ajung la 0: altfel shaderul se recompilează
+      pageMat.uniforms.show.value = 0;
+      fov.v = FOV; setFov();
+      state = "site";
+      site.focus();
+      wake();
+    }
+  </script>
+</body>
+</html>

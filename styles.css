@@ -1,0 +1,306 @@
+:root {
+  --bg: #0e0a0a;
+  --fg: #f5ede6;
+  --muted: #9a8c86;
+  --line: #2e2222;
+  --accent: #ff4f45;
+  --deep: #7a0d16;
+  --display: "Syne", sans-serif;
+  --body: "Manrope", system-ui, sans-serif;
+  --pad: clamp(1rem, 4vw, 3.5rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 1rem/1.6 var(--body);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+em { font-style: normal; color: var(--accent); }
+::selection { background: var(--accent); color: var(--bg); }
+
+/* Scrollbar ascuns complet (scroll-ul cu rotița, touchpad-ul și tastele merg normal) */
+html { scrollbar-width: none; }
+::-webkit-scrollbar { display: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+
+/* Preloader (doar când rulează JS) */
+.preloader { display: none; }
+.js .preloader {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center; padding: var(--pad);
+}
+/* cortina neagră are o gaură în forma logo-ului: prin litere se vede lichidul din bg.js.
+   --mw = lățimea găurii; main.js o crește ca să „intre” camera în logo. */
+.preloader__curtain { position: absolute; inset: 0; background: var(--bg); }
+/* masca se pune abia la „topire” (main.js adaugă .is-open): browserul nu desenează un element
+   cât timp imaginea măștii se descarcă, așa că la prima vizită s-ar vedea site-ul prin cortină */
+.preloader__curtain.is-open {
+  -webkit-mask-image: url(logo-mask.webp), linear-gradient(#000 0 0);
+  -webkit-mask-position: center, 0 0;
+  -webkit-mask-size: var(--mw) auto, 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-composite: xor;
+  mask-image: url(logo-mask.webp), linear-gradient(#000 0 0);
+  mask-position: center, 0 0;
+  mask-size: var(--mw) auto, 100% 100%;
+  mask-repeat: no-repeat;
+  mask-composite: exclude;
+}
+.preloader__mark { position: relative; width: min(70vw, 560px); overflow: hidden; }
+.preloader__logo { display: block; width: 100%; height: auto; }
+/* ascuns din start ca în primul cadru din main.js, altfel logo-ul clipește înainte de animație */
+.js .preloader__logo { clip-path: polygon(0% 0%, 0% 0%, -30% 100%, -30% 100%); }
+.preloader__fx { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Sclipiri animate peste cele desenate în logo (poziții în % din logo, puse din main.js) */
+.nav__logo { position: relative; }
+.spark {
+  position: absolute; width: var(--s); aspect-ratio: 1; translate: -50% -50%;
+  pointer-events: none; mix-blend-mode: screen; opacity: 0;
+  background:
+    radial-gradient(circle, #fff 0 6%, rgba(255, 230, 225, .7) 12%, transparent 34%),
+    linear-gradient(90deg, transparent, #fff 50%, transparent) center / 100% 6% no-repeat,
+    linear-gradient(transparent, #fff 50%, transparent) center / 6% 100% no-repeat;
+  animation: twinkle var(--t) ease-in-out var(--d) infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0; transform: scale(.2) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(90deg); }
+}
+/* strălucire cromată care trece doar peste forma literelor */
+.preloader__shine {
+  position: absolute; inset: 0; mix-blend-mode: screen;
+  background: linear-gradient(105deg, transparent 44%, rgba(255, 255, 255, .7) 50%, transparent 56%) 160% 0 / 250% 100% no-repeat;
+  -webkit-mask: url(logo.webp) center / 100% 100% no-repeat;
+  mask: url(logo.webp) center / 100% 100% no-repeat;
+}
+.preloader__bar { position: absolute; left: calc(50% - 90px); width: 180px; bottom: 18vh; height: 1px; background: var(--line); }
+.preloader__bar span { display: block; height: 100%; background: var(--fg); transform: scaleX(0); }
+
+
+/* Cursor rotund (doar pe dispozitive cu mouse) */
+.cursor {
+  position: fixed; top: 0; left: 0; z-index: 200; pointer-events: none;
+  width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+  background: var(--fg); mix-blend-mode: difference; display: none; opacity: 0;
+}
+@media (hover: hover) and (pointer: fine) { .js .cursor { display: block; } }
+/* cursorul normal dispare doar când cercul e activ (main.js pune .has-cursor) */
+.has-cursor, .has-cursor * { cursor: none !important; }
+
+/* Nav: bară de sticlă, conținutul se vede estompat prin ea */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem var(--pad);
+}
+/* bara de sticlă stă pe un strat separat și apare treptat pe primii ~150px de scroll (main.js setează --glass) */
+.nav::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: rgba(14, 10, 10, .55);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3);
+  border-bottom: 1px solid rgba(245, 237, 230, .07);
+  opacity: var(--glass, 0);
+}
+.nav__logo img { display: block; height: clamp(2.8rem, 4vw, 3.6rem); width: auto; }
+.nav__links { display: flex; align-items: center; gap: clamp(1rem, 2.5vw, 2.5rem); font-size: .95rem; }
+.nav__links a { position: relative; }
+.nav__links a::after {
+  content: ""; position: absolute; left: 0; bottom: -3px; width: 100%; height: 1px;
+  background: currentColor; transform: scaleX(0); transform-origin: right;
+  transition: transform .35s cubic-bezier(.2,.8,.2,1);
+}
+.nav__links a:hover::after { transform: scaleX(1); transform-origin: left; }
+@media (max-width: 640px) { .nav__links a:not(.nav__cta) { display: none; } }
+/* butonul de limbă: comutator EN | RO, pastila roșie alunecă pe limba activă (html[lang]) */
+.lang {
+  position: relative; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: .25rem; cursor: pointer;
+  font: 700 .72rem/1 var(--body); letter-spacing: .12em; color: var(--fg);
+  background: rgba(245, 237, 230, .05); border: 1px solid rgba(245, 237, 230, .14); border-radius: 999px;
+  transition: border-color .4s;
+}
+.lang:hover { border-color: rgba(255, 79, 69, .5); }
+.lang__knob {
+  position: absolute; top: .25rem; bottom: .25rem; left: .25rem; width: calc(50% - .25rem); border-radius: 999px;
+  background: var(--accent); box-shadow: 0 4px 18px rgba(255, 79, 69, .35), inset 0 1px 0 rgba(255, 255, 255, .25);
+  transition: translate .35s cubic-bezier(.65, 0, .25, 1);
+}
+html[lang="ro"] .lang__knob { translate: 100% 0; }
+.lang__opt {
+  position: relative; display: flex; align-items: center; gap: .45rem; padding: .45rem .7rem .45rem .45rem;
+  opacity: .55; transition: opacity .4s;
+}
+html[lang="en"] [data-l="en"], html[lang="ro"] [data-l="ro"] { opacity: 1; }
+.lang:hover .lang__opt { opacity: 1; }
+.lang__flag {
+  width: 1.1rem; height: 1.1rem; border-radius: 50%; flex: none;
+  box-shadow: 0 0 0 1.5px rgba(245, 237, 230, .35); transition: scale .4s var(--ease);
+}
+.lang:hover .lang__flag { scale: 1.08; }
+
+/* Hero */
+.hero {
+  position: relative; min-height: 100svh; padding: 8rem var(--pad) 3rem;
+  display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden;
+}
+/* Titlul: fiecare rând e o mască din care cuvintele urcă lin (main.js) */
+.hero__title {
+  flex: 1; display: flex; flex-direction: column; justify-content: center;
+  font: 800 clamp(2.4rem, 6.6vw, 8.5rem)/.92 var(--display); letter-spacing: -.045em; text-transform: uppercase;
+}
+.hero__line { display: block; width: fit-content; white-space: nowrap; overflow: hidden; padding: .14em 0 .06em; margin: -.1em 0 -.04em; }
+.hero__line:nth-child(2) { margin-left: 6vw; }
+/* pe telefon rândurile ar ieși din ecran (fontul e foarte lat), așa că se rup în mai multe rânduri, mari */
+@media (max-width: 640px) {
+  .hero__title { font-size: 12.5vw; }
+  .hero__line { white-space: normal; }
+}
+/* Titlul „Rubik” (main.js, heroRubik): fiecare literă e un cub; felii de litere se rotesc cu 90° pe X sau Y și ajung
+   pe fața următoare (aceeași literă). .rb = perspectiva, .rb__r = cubul care se rotește, .rb__f = fețele; a doua față
+   e ascunsă în repaus, iar la rotire main.js o așază pe latura cubului */
+.hero__title.is-live .hero__line { overflow: visible; }
+.rb { perspective: 4em; }
+.rb__r { display: block; position: relative; transform-style: preserve-3d; }
+.rb__f { display: block; backface-visibility: hidden; }
+.rb__f + .rb__f { position: absolute; inset: 0; opacity: 0; }
+/* pata lichidă de la hover (main.js): peste hero, în modul multiply - dungile ies puternic pe litere și discret pe fundal */
+.hero__blob { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: multiply; z-index: 1; }
+.line { display: block; overflow: hidden; padding-bottom: .04em; }
+.hero__bottom {
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem;
+  margin-top: 3rem; flex-wrap: wrap;
+}
+.hero__lead { max-width: 34rem; color: var(--muted); font-size: clamp(1rem, 1.3vw, 1.2rem); }
+.bg { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; display: block; }
+
+/* Butoane: pastilă cu săgeată într-un cerc roșu; la hover cercul umple butonul și textul se rotește în sus */
+.btn {
+  --ease: cubic-bezier(.7, 0, .2, 1);
+  position: relative; display: inline-flex; align-items: center; gap: 1rem;
+  padding: .45rem .45rem .45rem 1.6rem; border-radius: 999px; overflow: hidden; isolation: isolate;
+  background: var(--fg); color: var(--bg); font-weight: 600; transition: color .6s var(--ease);
+}
+.btn::before {
+  content: ""; position: absolute; z-index: -1; top: 50%; right: .45rem;
+  width: 2.8rem; height: 2.8rem; margin-top: -1.4rem; border-radius: 50%; background: var(--accent);
+  transition: transform .7s var(--ease);
+}
+.btn:hover { color: #fff; }
+.btn:hover::before { transform: scale(9); }
+.btn__label { display: block; overflow: hidden; line-height: 1.4; }
+.btn__label span { position: relative; display: block; transition: transform .6s var(--ease); }
+.btn__label span::after { content: attr(data-text); position: absolute; left: 0; top: 100%; }
+.btn:hover .btn__label span { transform: translateY(-100%); }
+.btn__icon { display: grid; place-items: center; width: 2.8rem; height: 2.8rem; color: #fff; }
+.btn__icon svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  transform: rotate(-45deg); transition: transform .6s var(--ease); }
+.btn:hover .btn__icon svg { transform: rotate(0deg); }
+/* varianta mică, pentru bara de sus */
+.btn--sm { gap: .7rem; padding: .3rem .3rem .3rem 1.1rem; font-size: .9rem; }
+.btn--sm::before { right: .3rem; width: 2.1rem; height: 2.1rem; margin-top: -1.05rem; }
+.btn--sm .btn__icon { width: 2.1rem; height: 2.1rem; }
+.btn--sm .btn__icon svg { width: .95rem; height: .95rem; }
+.nav__links a.btn::after { display: none; }
+
+/* Marquee */
+.marquee { border-block: 1px solid var(--line); padding: 1.5rem 0; overflow: hidden; }
+.marquee__track { display: flex; width: max-content; gap: 2.5rem; align-items: center; animation: marquee 30s linear infinite; }
+.marquee__track span { font: 700 clamp(1.8rem, 4vw, 3.2rem) var(--display); text-transform: uppercase; white-space: nowrap; }
+.marquee__track i { color: var(--accent); font-style: normal; font-size: 1.5rem; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* About */
+.about, .services, .contact { padding: clamp(6rem, 14vw, 11rem) var(--pad); }
+.about__text { font: 500 clamp(1.6rem, 3.6vw, 3.3rem)/1.2 var(--display); letter-spacing: -.02em; max-width: 60rem; }
+/* Procesul de lucru: trei pași sub textul din „Despre” */
+.process { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1.5rem, 4vw, 3.5rem); margin-top: 5rem; list-style: none; }
+.step { border-top: 1px solid var(--line); padding-top: 1.75rem; }
+.step__num { display: block; color: var(--accent); font: 700 .9rem var(--display); letter-spacing: .1em; }
+.step h3 { margin: 1.1rem 0 .7rem; font: 700 clamp(1.6rem, 2.8vw, 2.4rem)/1 var(--display); letter-spacing: -.02em; }
+.step p { color: var(--muted); max-width: 22rem; }
+@media (max-width: 800px) { .process { grid-template-columns: 1fr; margin-top: 3.5rem; } }
+
+/* Services */
+.service {
+  display: grid; grid-template-columns: 5rem 1fr 1fr; gap: 2rem; align-items: baseline;
+  padding: 2.25rem 0; border-top: 1px solid var(--line); position: relative;
+  transition: padding .4s cubic-bezier(.2,.8,.2,1), color .4s;
+}
+.service:last-child { border-bottom: 1px solid var(--line); }
+.service__num { color: var(--muted); font-size: .9rem; }
+.service h3 { font: 700 clamp(1.6rem, 3.5vw, 3rem) var(--display); letter-spacing: -.02em; }
+.service p { color: var(--muted); max-width: 28rem; }
+.service:hover { padding-left: 1.5rem; }
+.service:hover h3 { color: var(--accent); }
+@media (max-width: 800px) { .service { grid-template-columns: 1fr; gap: .6rem; } }
+
+/* Work — grilă compactă pe trei coloane; se derulează normal, fără blocare */
+.work { padding: clamp(5rem, 10vw, 8rem) var(--pad); }
+.work__head { margin-bottom: clamp(2rem, 4vw, 3.5rem); }
+.work__title { font: 800 clamp(2.5rem, 7vw, 6rem)/1 var(--display); letter-spacing: -.04em; text-transform: uppercase; }
+.work__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 2vw, 1.75rem); }
+.card__media {
+  display: block; width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 6px;
+  position: relative; overflow: hidden; transition: transform .8s cubic-bezier(.2,.8,.2,1), border-radius .8s;
+}
+.card:hover .card__media { transform: scale(.97); border-radius: 22px; }
+.card__media span {
+  position: absolute; left: 1.5rem; bottom: 1rem;
+  font: 800 clamp(2.5rem, 5vw, 4.5rem)/1 var(--display); color: rgba(255,255,255,.85); mix-blend-mode: overlay;
+}
+.g1 { background: linear-gradient(135deg, #ff3b30, #4a0810); }
+.g2 { background: linear-gradient(160deg, #2b1a1a, #0e0a0a); }
+.g3 { background: linear-gradient(135deg, #ff7a45, #7a0d16); }
+.g4 { background: linear-gradient(200deg, #f5ede6, #c9a9a0); }
+.g5 { background: linear-gradient(135deg, #b3122a, #1a0508); }
+.card__info { display: flex; justify-content: space-between; align-items: baseline; margin-top: 1rem; }
+.card__info h3 { font: 700 1.3rem var(--display); transition: color .4s; }
+.card:hover .card__info h3 { color: var(--accent); }
+.card__info p { color: var(--muted); font-size: .9rem; }
+@media (max-width: 1000px) { .work__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .work__grid { grid-template-columns: 1fr; } }
+
+/* Contact: titlu mare, apoi câte un rând mare pentru fiecare canal (se umple cu roșu la hover) */
+.contact__title { font: 800 clamp(2.6rem, 8vw, 7.5rem)/.95 var(--display); letter-spacing: -.045em; text-transform: uppercase; }
+.contact__body {
+  display: grid; grid-template-columns: 1fr 1.7fr; gap: clamp(2rem, 6vw, 6rem);
+  margin-top: clamp(3rem, 6vw, 5rem); align-items: start;
+}
+.contact__lead { color: var(--muted); max-width: 22rem; font-size: 1.05rem; }
+.contact__row {
+  position: relative; display: grid; grid-template-columns: 8rem 1fr auto; align-items: center; gap: 1.5rem;
+  padding: 1.6rem 1rem; border-top: 1px solid var(--line); overflow: hidden; isolation: isolate; transition: color .45s;
+}
+.contact__list li:last-child .contact__row { border-bottom: 1px solid var(--line); }
+.contact__row::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--accent);
+  transform: scaleY(0); transform-origin: bottom; transition: transform .5s cubic-bezier(.2,.8,.2,1);
+}
+.contact__row:hover::before { transform: scaleY(1); }
+.contact__row:hover, .contact__row:hover span { color: var(--bg); }
+.contact__row span { color: var(--muted); font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; transition: color .45s; }
+.contact__row strong { font: 700 clamp(1.1rem, 2.4vw, 2rem) var(--display); overflow-wrap: anywhere; }
+.contact__row i { font-style: normal; font-size: 1.6rem; transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+.contact__row:hover i { transform: rotate(45deg); }
+@media (max-width: 800px) {
+  .contact__body { grid-template-columns: 1fr; }
+  .contact__row { grid-template-columns: 1fr auto; row-gap: .3rem; }
+  .contact__row span { grid-column: 1 / -1; }
+}
+
+.footer {
+  display: flex; justify-content: space-between; padding: 2rem var(--pad);
+  border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track, .spark { animation: none; }
+  * { transition: none !important; }
+}
