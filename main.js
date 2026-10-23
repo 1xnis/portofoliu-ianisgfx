@@ -433,8 +433,9 @@ if (reduce) {
       .from(".prism__lead", { y: 50, opacity: 0, duration: 0.6 }, 0.2)
       .fromTo(".prism__glass", { "--r": "0%", "--l": 1 }, { "--r": "100%", duration: 0.6, ease: "none" }, 0.85)
       .to(".prism__glass", { "--l": 0, duration: 0.1, ease: "none" }, 1.35)
-      .fromTo(rayEls, { "--s": 0 }, { "--s": 1, stagger: 0.12, duration: 0.5, ease: "power2.inOut" }, 1.0)
-      .from(rayEls.map((r) => r.children), { y: 24, opacity: 0, stagger: 0.04, duration: 0.4 }, 1.1);
+      // panourile urcă pe rând (fiecare de la altă distanță, ca straturi), apoi li se aprinde linia razei
+      .from(rayEls, { y: (i) => 70 + i * 30, opacity: 0, stagger: 0.18, duration: 0.6 }, 0.55)
+      .fromTo(rayEls, { "--s": 0 }, { "--s": 1, stagger: 0.18, duration: 0.5, ease: "power2.inOut" }, 0.8);
     return () => { aboutEl.classList.remove("is-wide"); prism.grow = 1; };
   });
   aboutMM.add("(max-width: 860px)", () => {
