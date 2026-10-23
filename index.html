@@ -1,20 +1,29 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- pornește ecranul de încărcare înainte de prima afișare, altfel pagina se vede o clipă -->
   <script>document.documentElement.classList.add("js");</script>
-  <title data-ro="ianisgfx — Design grafic &amp; Webdesign">ianisgfx — Graphic Design & Web Design</title>
-  <meta name="description" content="Ianis — graphic designer and web designer. Visual identities, branding and websites that look like quality.">
+  <title data-ro="ianisgfx — Design grafic &amp; Web design &amp; development">ianisgfx — Graphic Design & Web Design &amp; Development</title>
+  <meta name="description"
+    content="Ianis — graphic designer, web designer &amp; developer. Visual identities, branding and websites that look like quality.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@500;700;800&family=Manrope:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.css">
   <link rel="icon" href="logo.webp">
   <link rel="preload" href="logo-mask.webp" as="image">
   <link rel="stylesheet" href="styles.css">
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
+                   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }
+  </script>
 </head>
+
 <body>
   <div class="preloader" aria-hidden="true">
     <div class="preloader__curtain"></div>
@@ -25,92 +34,473 @@
     <div class="preloader__bar"><span></span></div>
   </div>
   <div class="cursor" aria-hidden="true"></div>
+  <div class="cursor-tag" aria-hidden="true"><svg viewBox="5.5 5.5 13 13"><path d="M7 17 17 7M8.5 7H17v8.5" /></svg></div>
   <canvas class="bg" aria-hidden="true"></canvas>
 
   <!-- Traduceri: textul vizibil e în engleză; data-ro="..." e varianta în română a aceluiași element -->
   <header class="nav">
     <a href="#top" class="nav__logo"><img src="logo.webp" alt="ianisgfx — home" width="1600" height="1029"></a>
     <nav class="nav__links" aria-label="Main navigation">
-      <a href="#despre" data-ro="Despre">About</a>
       <a href="#servicii" data-ro="Servicii">Services</a>
-      <a href="#lucrari" data-ro="Lucrări">Work</a>
+      <a href="#portofoliu" data-ro="Portofoliu">Portfolio</a>
+      <a href="#despre" data-ro="Despre">About</a>
       <button type="button" class="lang" aria-label="Schimbă limba în română">
         <span class="lang__knob" aria-hidden="true"></span>
-        <span class="lang__opt" data-l="en"><svg class="lang__flag" viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><clipPath id="uk"><path d="M30 15h30v15zv15H0zH0V0zV0h30z"/></clipPath><path d="M0 0v30h60V0z" fill="#012169"/><path d="M0 0l60 30m0-30L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30m0-30L0 30" clip-path="url(#uk)" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></svg>EN</span>
-        <span class="lang__opt" data-l="ro"><svg class="lang__flag" viewBox="0 0 3 2" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path fill="#002B7F" d="M0 0h1v2H0z"/><path fill="#FCD116" d="M1 0h1v2H1z"/><path fill="#CE1126" d="M2 0h1v2H2z"/></svg>RO</span>
+        <span class="lang__opt" data-l="en"><svg class="lang__flag" viewBox="0 0 60 30"
+            preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <clipPath id="uk">
+              <path d="M30 15h30v15zv15H0zH0V0zV0h30z" />
+            </clipPath>
+            <path d="M0 0v30h60V0z" fill="#012169" />
+            <path d="M0 0l60 30m0-30L0 30" stroke="#fff" stroke-width="6" />
+            <path d="M0 0l60 30m0-30L0 30" clip-path="url(#uk)" stroke="#C8102E" stroke-width="4" />
+            <path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10" />
+            <path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6" />
+          </svg>EN</span>
+        <span class="lang__opt" data-l="ro"><svg class="lang__flag" viewBox="0 0 3 2"
+            preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <path fill="#002B7F" d="M0 0h1v2H0z" />
+            <path fill="#FCD116" d="M1 0h1v2H1z" />
+            <path fill="#CE1126" d="M2 0h1v2H2z" />
+          </svg>RO</span>
       </button>
-      <a href="#contact" class="nav__cta btn btn--sm magnetic"><span class="btn__label"><span data-text="Contact">Contact</span></span><span class="btn__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+      <a href="#contact" class="nav__cta btn btn--sm magnetic"><span class="btn__label"><span
+            data-text="Contact">Contact</span></span><span class="btn__icon"><svg viewBox="0 0 24 24"
+            aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg></span></a>
     </nav>
   </header>
 
   <main id="top">
     <section class="hero">
       <!-- Titlul: fiecare <span class="hero__line"> e un rând animat separat; schimbă textele liber -->
-      <h1 class="hero__title"><span class="hero__line" data-ro="Design care">Design that</span><span class="hero__line" data-ro="prinde <em>viață</em>">comes <em>alive</em></span></h1>
+      <h1 class="hero__title"><span class="hero__line" data-ro="Designul e">Design is</span><span class="hero__line"
+          data-ro="propria ta">your own</span><span class="hero__line"
+          data-ro="<em>reflecție</em>"><em>reflection</em></span></h1>
       <div class="hero__bottom">
-        <p class="hero__lead" data-ro="Sunt Ianis — designer grafic și webdesigner. Construiesc identități vizuale și site-uri care fac un brand să pară exact atât de bun cât este.">I'm Ianis — a graphic designer and web designer. I build visual identities and websites that make a brand look exactly as good as it is.</p>
-        <a href="#lucrari" class="btn magnetic"><span class="btn__label"><span data-text="See my work" data-ro="Vezi lucrările">See my work</span></span><span class="btn__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+        <p class="hero__lead"
+          data-ro="Aici vei găsi tot ce ai nevoie, și cu siguranță mai mult. Pun accent pe detalii, calitate și simț vizual plăcut.">
+          Here you'll find everything you need, and definitely more. I focus on detail, quality and a pleasing visual
+          feel.</p>
+        <a href="#portofoliu" class="btn magnetic"><span class="btn__label"><span data-text="See my work"
+              data-ro="Vezi lucrările">See my work</span></span><span class="btn__icon"><svg viewBox="0 0 24 24"
+              aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg></span></a>
       </div>
     </section>
 
-    <div class="marquee" aria-hidden="true">
-      <div class="marquee__track">
-        <span>Branding</span><i>✦</i><span data-ro="Identitate vizuală">Visual identity</span><i>✦</i><span>Webdesign</span><i>✦</i><span>Social media</span><i>✦</i><span>Print</span><i>✦</i><span>UI / UX</span><i>✦</i>
-        <span>Branding</span><i>✦</i><span data-ro="Identitate vizuală">Visual identity</span><i>✦</i><span>Webdesign</span><i>✦</i><span>Social media</span><i>✦</i><span>Print</span><i>✦</i><span>UI / UX</span><i>✦</i>
-      </div>
-    </div>
+    <!-- Servicii: în mijloc, simbolul 3D (steaua din logo) care trece prin tratamente tehnice (svx3d.js, după „Ownit symbol
+         motion study”), lipit de ecran cât ține secțiunea, mutându-se lângă cardul din față; cardurile: stânga, dreapta, mijloc.
+         Pe telefon: simbolul deasupra, cardurile unul sub altul. -->
+    <section class="services" id="servicii" aria-label="Services">
+      <div class="svc">
+        <div class="svx-wrap" aria-hidden="true"><canvas class="svx"></canvas><canvas class="svx-hud"></canvas></div>
+        <article class="svc__card">
+          <div class="svc__top"><span class="svc__num">01</span><span class="svc__tag">Branding · Print · Social</span></div>
+          <span class="svc__ghost" aria-hidden="true">01</span>
+          <h3 data-ro="Design grafic">Graphic design</h3>
+          <p class="svc__desc" data-ro="Identități vizuale și designuri care spun cine ești dintr-o privire.">Visual
+            identities and designs that say who you are at a glance.</p>
+          <ul class="svc__list">
+            <li data-ro="Logo și identitate vizuală">Logo &amp; visual identity</li>
+            <li data-ro="Vizualuri social media">Social media visuals</li>
+            <li data-ro="Afișe, print și merch">Posters, print &amp; merch</li>
+          </ul>
+          <a href="#contact" class="svc__cta" data-ro="Începe un proiect">Start a project</a>
+        </article>
 
+        <article class="svc__card">
+          <div class="svc__top"><span class="svc__num">02</span><span class="svc__tag">UI · UX · Code</span></div>
+          <span class="svc__ghost" aria-hidden="true">02</span>
+          <h3 data-ro="Web design &amp; development">Web design &amp; development</h3>
+          <p class="svc__desc" data-ro="Site-uri gândite și construite de la zero: rapide, animate, făcute să convertească.">
+            Websites designed and built from scratch: fast, animated, made to convert.</p>
+          <ul class="svc__list">
+            <li data-ro="Design UI / UX">UI / UX design</li>
+            <li data-ro="Dezvoltare responsive">Responsive development</li>
+            <li data-ro="Lansare și găzduire">Launch &amp; hosting</li>
+          </ul>
+          <a href="#contact" class="svc__cta" data-ro="Începe un proiect">Start a project</a>
+        </article>
+
+        <article class="svc__card">
+          <div class="svc__top"><span class="svc__num">03</span><span class="svc__tag">Edit · Motion · Color</span></div>
+          <span class="svc__ghost" aria-hidden="true">03</span>
+          <h3 data-ro="Editare video">Video editing</h3>
+          <p class="svc__desc" data-ro="Animații și edituri făcute să țină oamenii cu ochii pe tine.">Animations and edits
+            made to keep all eyes on you.</p>
+          <ul class="svc__list">
+            <li data-ro="Montaj și reels">Edits &amp; reels</li>
+            <li>Motion graphics</li>
+            <li data-ro="Corecție de culoare">Color grading</li>
+          </ul>
+          <a href="#contact" class="svc__cta" data-ro="Începe un proiect">Start a project</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="work" id="portofoliu">
+      <!-- Câte un card pe categorie, fiecare cu un mockup pus într-o scenă: tricourile (fotografie), un laptop cu
+           un montaj în interfața de editare (animat din main.js) și un telefon cu site-ul. Click = portofoliul categoriei. -->
+      <div class="show">
+        <article class="show__card show__card--graphic" data-cat="graphic">
+          <div class="show__stage"><img class="show__shirts" src="lucrari/tricouri.webp"
+              alt="Four t-shirt mockups with the “Look mom I got a Glock” print, in black, white and red" loading="lazy"
+              width="1616" height="1129"></div>
+          <header class="show__head">
+            <div>
+              <h3 data-ro="Design grafic">Graphic design</h3>
+            </div><span class="show__go" aria-hidden="true"><svg viewBox="0 0 24 24">
+                <path d="M7 17L17 7M9 7h8v8" />
+              </svg></span>
+          </header>
+          <footer class="show__foot">
+            <p data-ro="Identități vizuale și orice tip de designuri grafice care lasă o amprentă autentică.">Visual
+              identities and every kind of graphic design that leaves an authentic mark.</p><button type="button" class="show__open"><span
+                data-ro="Vezi lucrările">View work</span></button>
+          </footer>
+        </article>
+
+        <article class="show__card show__card--video" data-cat="video">
+          <div class="show__stage">
+            <img class="show__bg" src="lucrari/laptop.webp" alt="" aria-hidden="true">
+            <!-- fotografia: Julian Hochgesang / Unsplash; data-quad = colțurile ecranului în pixelii pozei -->
+            <div class="show__scene" data-size="1600 1067" data-focus="620 520" data-zoom="2.1"
+              data-quad="[[296.7,260.5],[876.8,261.8],[929.1,638.2],[340.1,700.2]]">
+              <img class="show__photo" src="lucrari/laptop.webp"
+                alt="MacBook Pro on a desk, editing a showreel in Premiere Pro" width="1600" height="1067">
+              <div class="show__screen" data-w="1440" data-h="900">
+                <img class="show__img" src="lucrari/premiere.webp" alt="" width="1440" height="900" decoding="async">
+              </div>
+            </div>
+          </div>
+          <header class="show__head">
+            <div>
+              <h3 data-ro="Editare video">Video editing</h3>
+            </div><span class="show__go" aria-hidden="true"><svg viewBox="0 0 24 24">
+                <path d="M7 17L17 7M9 7h8v8" />
+              </svg></span>
+          </header>
+          <footer class="show__foot">
+            <p data-ro="Animații și edituri făcute ca să țină oamenii cu ochii pe tine.">Animations and
+              edits made to keep all eyes on you.</p><button type="button" class="show__open"><span
+                data-ro="Vezi lucrările">View work</span></button>
+          </footer>
+        </article>
+
+        <article class="show__card show__card--web" data-cat="web">
+          <div class="show__stage">
+            <img class="show__bg" src="lucrari/iphone.webp" alt="" aria-hidden="true">
+            <!-- fotografia: Swello / Unsplash; pe ecran: captura site-ului pe telefon (lucrari/site-phone.webp), pusă în perspectivă -->
+            <div class="show__scene" data-size="1600 2400" data-focus="890 1060" data-zoom="1.25"
+              data-quad="[[912.5,321.9],[1463.3,602.5],[873.8,1798],[316.8,1525.1]]">
+              <img class="show__photo" src="lucrari/iphone.webp" alt="iPhone in a hand showing the ianisgfx website"
+                width="1600" height="2400">
+              <div class="show__screen show__screen--phone" data-w="390" data-h="845">
+                <img class="show__img" src="lucrari/site-phone.webp" alt="" width="390" height="845" decoding="async"><i
+                  class="show__notch"></i>
+              </div>
+            </div>
+          </div>
+          <header class="show__head">
+            <div>
+              <h3>Web design &amp; development</h3>
+            </div><span class="show__go" aria-hidden="true"><svg viewBox="0 0 24 24">
+                <path d="M7 17L17 7M9 7h8v8" />
+              </svg></span>
+          </header>
+          <footer class="show__foot">
+            <p data-ro="Site-uri rapide, animate, făcute să transforme vizitatorii în clienți.">Fast, animated websites
+              built to turn visitors into clients.</p><button type="button" class="show__open"><span
+                data-ro="Vezi lucrările">View work</span></button>
+          </footer>
+        </article>
+      </div>
+      <div class="show__nav" aria-hidden="true">
+        <div class="show__dots"><i class="is-on"></i><i></i><i></i></div>
+        <button type="button" class="show__btn" data-dir="-1" tabindex="-1"><svg viewBox="0 0 24 24">
+            <path d="M15 6l-6 6 6 6" />
+          </svg></button>
+        <button type="button" class="show__btn" data-dir="1" tabindex="-1"><svg viewBox="0 0 24 24">
+            <path d="M9 6l6 6-6 6" />
+          </svg></button>
+      </div>
+    </section>
+
+    <!-- Despre: prisma (prism.js, după „Prism triangle motion study”): lumina albă intră în triunghi și iese ca un spectru
+         în culorile site-ului. Pe ecrane late lumina se aprinde cât dai scroll (fără să oprească pagina), apoi apar textele;
+         etichetele 01-03 stau într-un rând jos-dreapta, fiecare cu linia ei în culoarea unei raze (--c).
+         ✏️ TEXTELE TALE: schimbă textele de mai jos. Fiecare are două variante: în engleză (textul dintre etichete)
+         și în română (atributul data-ro="..."). Păstrează <em>…</em> pentru cuvântul roșu și <i>…</i> pentru cel înclinat. -->
     <section class="about" id="despre">
-      <p class="about__text reveal-words" data-ro="Cred că un design bun nu e doar frumos — e clar, memorabil și își face treaba. Lucrez cu atenție la fiecare detaliu, de la logo până la ultimul pixel al unui site, ca să ofer rezultate care inspiră încredere din prima secundă.">I believe good design isn't just beautiful — it's clear, memorable and does its job. I pay attention to every detail, from the logo to the last pixel of a website, to deliver results that inspire trust from the very first second.</p>
-      <!-- Procesul de lucru: schimbă textele liber -->
-      <ol class="process">
-        <li class="step"><span class="step__num">01</span><h3 data-ro="Discuție">Discovery</h3><p data-ro="Aflu ce face brandul tău, cui se adresează și ce vrei să obții.">I learn what your brand does, who it speaks to and what you want to achieve.</p></li>
-        <li class="step"><span class="step__num">02</span><h3>Concept</h3><p data-ro="Vin cu propuneri vizuale și le ajustăm împreună până ies exact cum trebuie.">I come up with visual proposals and we refine them together until they're exactly right.</p></li>
-        <li class="step"><span class="step__num">03</span><h3 data-ro="Livrare">Delivery</h3><p data-ro="Primești fișierele finale, organizate și gata de folosit oriunde.">You get the final files, organized and ready to use anywhere.</p></li>
-      </ol>
-    </section>
-
-    <section class="services" id="servicii">
-      <ul class="services__list">
-        <li class="service"><span class="service__num">/01</span><h3>Branding & Logo</h3><p data-ro="Logo, paletă de culori, tipografie și ghid de brand — o identitate coerentă, ușor de recunoscut.">Logo, color palette, typography and brand guidelines — a coherent identity that's easy to recognize.</p></li>
-        <li class="service"><span class="service__num">/02</span><h3>Webdesign</h3><p data-ro="Site-uri moderne, rapide și responsive, gândite să convertească vizitatorii în clienți.">Modern, fast and responsive websites, built to turn visitors into clients.</p></li>
-        <li class="service"><span class="service__num">/03</span><h3 data-ro="Design grafic">Graphic design</h3><p data-ro="Postări social media, afișe, flyere, ambalaje și materiale print care atrag privirea.">Social media posts, posters, flyers, packaging and print materials that catch the eye.</p></li>
-        <li class="service"><span class="service__num">/04</span><h3>UI / UX</h3><p data-ro="Interfețe clare și plăcute pentru aplicații și platforme digitale.">Clear, enjoyable interfaces for apps and digital platforms.</p></li>
-      </ul>
-    </section>
-
-    <section class="work" id="lucrari">
-      <div class="work__head">
-        <h2 class="work__title" data-ro="Proiecte <em>recente</em>">Recent <em>projects</em></h2>
-      </div>
-      <div class="work__grid">
-        <!-- Pentru o lucrare reală: pune imaginea în folderul "lucrari" și înlocuiește
-             <div class="card__media ..."></div> cu <img class="card__media" src="lucrari/nume.jpg" alt="Descriere"> -->
-        <article class="card"><div class="card__media g1"><span>01</span></div><div class="card__info"><h3 data-ro="Nume proiect">Project name</h3><p>Branding</p></div></article>
-        <article class="card"><div class="card__media g2"><span>02</span></div><div class="card__info"><h3 data-ro="Nume proiect">Project name</h3><p>Webdesign</p></div></article>
-        <article class="card"><div class="card__media g3"><span>03</span></div><div class="card__info"><h3 data-ro="Nume proiect">Project name</h3><p>Social media</p></div></article>
-        <article class="card"><div class="card__media g4"><span>04</span></div><div class="card__info"><h3 data-ro="Nume proiect">Project name</h3><p data-ro="Identitate vizuală">Visual identity</p></div></article>
-        <article class="card"><div class="card__media g5"><span>05</span></div><div class="card__info"><h3 data-ro="Nume proiect">Project name</h3><p>Print</p></div></article>
+      <h2 class="sr-only" data-ro="Despre mine">About me</h2>
+      <div class="prism">
+        <canvas class="prism__cv" aria-hidden="true"></canvas>
+        <div class="prism__intro">
+          <p class="prism__lead" data-ro="Sunt <em>Ianis</em>.<br>O idee intră,<br>un <i>spectru</i> întreg iese.">I'm <em>Ianis</em>.<br>One
+            idea goes in,<br>a whole <i>spectrum</i> comes out.</p>
+        </div>
+        <!-- descrierea stă în triunghiul de sticlă (prism.js îl suprapune peste triunghi; cele două <i> dau forma) -->
+        <div class="prism__glass"><i></i><i></i>
+          <p class="prism__sub"
+            data-ro="Designer, developer și editor din România. Transform idei brute în vizualuri, site-uri și edituri cu personalitate.">
+            Designer, developer and editor from Romania. I turn raw ideas into visuals, websites and edits with character.</p>
+        </div>
+        <ol class="prism__rays">
+          <li class="prism__ray" style="--c: #ffe2c8">
+            <span class="prism__n">01</span>
+            <h3 data-ro="Detaliu">Detail</h3>
+            <p data-ro="Fiecare pixel, fiecare cadru și fiecare linie de cod primesc aceeași atenție.">Every pixel, every
+              frame and every line of code gets the same attention.</p>
+          </li>
+          <li class="prism__ray" style="--c: #ff5a45">
+            <span class="prism__n">02</span>
+            <h3 data-ro="Calitate">Quality</h3>
+            <p data-ro="Lucrări care arată și se simt premium, livrate la timp.">Work that looks and feels premium,
+              delivered on time.</p>
+          </li>
+          <li class="prism__ray" style="--c: #b0123a">
+            <span class="prism__n">03</span>
+            <h3 data-ro="Emoție">Feeling</h3>
+            <p data-ro="Design de care oamenii își amintesc pentru ce simt când îl văd.">Design people remember for how it
+              makes them feel.</p>
+          </li>
+        </ol>
       </div>
     </section>
 
     <section class="contact" id="contact">
-      <h2 class="contact__title"><span class="line" data-ro="Hai să creăm">Let's create</span><span class="line" data-ro="ceva <em>remarcabil.</em>">something <em>remarkable.</em></span></h2>
-      <div class="contact__body">
-        <p class="contact__lead" data-ro="Ai un proiect în minte? Scrie-mi pe oricare dintre canalele de mai jos și hai să vorbim.">Have a project in mind? Message me on any of the channels below and let's talk.</p>
-        <ul class="contact__list">
-          <li><a class="contact__row" href="mailto:ianisiacob688@yahoo.com"><span>Email</span><strong>ianisiacob688@yahoo.com</strong><i aria-hidden="true">↗</i></a></li>
-          <li><a class="contact__row" href="https://www.instagram.com/ianisgfx/" target="_blank" rel="noopener"><span>Instagram</span><strong>@ianisgfx</strong><i aria-hidden="true">↗</i></a></li>
-          <li><a class="contact__row" href="https://wa.me/40746463657" target="_blank" rel="noopener"><span>WhatsApp</span><strong>0746 463 657</strong><i aria-hidden="true">↗</i></a></li>
-        </ul>
-      </div>
+      <h2 class="sr-only">Contact</h2>
+      <p class="contact__lead"
+        data-ro="Ai un proiect în minte? Scrie-mi pe oricare dintre canalele de mai jos și hai să vorbim.">Have a project
+        in mind? Message me on any of the channels below and let's talk.</p>
+      <ul class="contact__list">
+        <li><a class="contact__row" href="mailto:ianisiacob688@yahoo.com"><span>Email</span><strong>ianisiacob688@yahoo.com</strong><i
+              aria-hidden="true">↗</i></a></li>
+        <li><a class="contact__row" href="https://www.instagram.com/ianisgfx/" target="_blank"
+            rel="noopener"><span>Instagram</span><strong>@ianisgfx</strong><i aria-hidden="true">↗</i></a></li>
+        <li><a class="contact__row" href="https://wa.me/40746463657" target="_blank"
+            rel="noopener"><span>WhatsApp</span><strong>0746 463 657</strong><i aria-hidden="true">↗</i></a></li>
+      </ul>
     </section>
   </main>
 
   <footer class="footer">
     <span>© <span id="year">2026</span> ianisgfx</span>
+    <button type="button" class="footer__legal" data-legal data-ro="Confidențialitate și cookie-uri">Privacy &amp;
+      cookies</button>
     <a href="#top" data-ro="Înapoi sus ↑">Back to top ↑</a>
   </footer>
+
+
+  <!-- Portofoliul fiecărei categorii (se deschide din Showcase, după spargerea cardului).
+       Lucrare nouă: copiază un <figure class="piece"> în pagina categoriei, cu imaginea în folderul "lucrari". -->
+  <div class="cat" hidden data-lenis-prevent role="dialog" aria-modal="true" aria-label="Portfolio">
+    <div class="cat__top">
+      <a href="#top" class="cat__logo"><img src="logo.webp" alt="ianisgfx — home" width="1600" height="1029"></a>
+      <div class="cat__actions"><button type="button" class="cat__close"><span aria-hidden="true">←</span><span
+            data-ro="Înapoi">Back</span></button></div>
+    </div>
+
+    <section class="cat__page" data-cat="graphic" hidden>
+      <header class="cat__head">
+        <h2 data-ro="Design grafic">Graphic design</h2>
+      </header>
+      <div class="cat__grid">
+        <figure class="piece">
+          <div class="piece__media piece__media--fit" style="--img:url(lucrari/tricouri.webp)"><img
+              src="lucrari/tricouri.webp"
+              alt="Four t-shirt mockups with the “Look mom I got a Glock” print, in black, white and red"
+              loading="lazy"></div>
+          <figcaption>
+            <div>
+              <h3>ONEWEEKSOBER</h3><span class="piece__sub">Look Mom I Got A Glock</span>
+            </div>
+            <p data-ro="Design tricou">T-shirt design</p>
+          </figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="piece__media"><img src="lucrari/black-white-party.webp"
+              alt="Black &amp; White Party poster for Club Infinity, half white and half black, with DJ Anthon John"
+              loading="lazy"></div>
+          <figcaption>
+            <div>
+              <h3>Black &amp; White Party</h3>
+            </div>
+            <p data-ro="Poster pentru petrecere">Party poster</p>
+          </figcaption>
+        </figure>
+        <!-- Everest: pe card e a treia imagine (vinilul); la click se deschid toate trei (main.js, .lb) -->
+        <figure class="piece">
+          <button type="button" class="piece__media piece__media--fit piece__open" data-gallery="everest"
+            data-cursor="view" style="--img:url(lucrari/everest-vinyl.webp)" aria-label="Bogdy x Andrei — Everest: see all 3 images"><img
+              src="lucrari/everest-vinyl.webp" alt="" loading="lazy"><span class="piece__count"
+              aria-hidden="true">1 / 3</span></button>
+          <figcaption>
+            <div>
+              <h3>Bogdy x Andrei — Everest</h3>
+            </div>
+            <p>Official song cover art</p>
+          </figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="piece__media"><img src="lucrari/voice-of-the-heroes.webp"
+              alt="Black and white torn-paper collage cover art with Lil Durk and Lil Baby, “Voice of the Heroes”"
+              loading="lazy"></div>
+          <figcaption>
+            <div>
+              <h3>Lil Durk &amp; Lil Baby</h3><span class="piece__sub">Voice of the Heroes</span>
+            </div>
+            <p>Album cover art concept</p>
+          </figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="piece__media"><img src="lucrari/xxxtentacion.webp"
+              alt="Purple XXXTentacion poster with “Vice City” tape across the background" loading="lazy"></div>
+          <figcaption>
+            <div>
+              <h3>XXXTentacion poster</h3>
+            </div>
+            <p>Poster concept</p>
+          </figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="piece__media piece__media--fit" style="--img:url(lucrari/balenciaga.webp)"><img
+              src="lucrari/balenciaga.webp"
+              alt="Product card for the Balenciaga Triple S trainers in red and black, with price and product details"
+              loading="lazy"></div>
+          <figcaption>
+            <div>
+              <h3>Balenciaga (not official)</h3>
+            </div>
+            <p>Product showcase concept</p>
+          </figcaption>
+        </figure>
+        <figure class="piece piece--cta">
+          <div class="piece__media"><strong data-ro="Proiectul tău poate fi următorul.">Your project could be
+              next.</strong><a href="#contact" data-ro="Hai să vorbim ↗">Let's talk ↗</a></div>
+        </figure>
+      </div>
+    </section>
+
+    <section class="cat__page" data-cat="video" hidden>
+      <header class="cat__head">
+        <h2 data-ro="Editare video">Video editing</h2>
+      </header>
+      <div class="cat__grid">
+        <figure class="piece">
+          <div class="piece__media"><img class="shot" src="lucrari/premiere.webp" alt="ianisgfx showreel edited in Premiere Pro" width="1440" height="900" loading="lazy" decoding="async"></div>
+          <figcaption>
+            <h3>ianisgfx — Showreel</h3>
+            <p>Motion animation</p>
+          </figcaption>
+        </figure>
+        <figure class="piece piece--cta">
+          <div class="piece__media"><strong data-ro="Proiectul tău poate fi următorul.">Your project could be
+              next.</strong><a href="#contact" data-ro="Hai să vorbim ↗">Let's talk ↗</a></div>
+        </figure>
+      </div>
+    </section>
+
+    <section class="cat__page" data-cat="web" hidden>
+      <header class="cat__head">
+        <h2>Web design &amp; development</h2>
+      </header>
+      <div class="cat__grid">
+        <figure class="piece">
+          <div class="piece__media"><a class="piece__link" href="./" target="_blank" rel="noopener" data-cursor="open"
+              aria-label="Open the ianisgfx website"></a><img class="shot" src="lucrari/site-desktop.webp" alt="ianisgfx website, home page" width="1440" height="900" loading="lazy" decoding="async"></div>
+          <figcaption>
+            <h3><a href="./" target="_blank" rel="noopener">ianisgfx <span aria-hidden="true">↗</span></a></h3>
+            <p data-ro="Site-ul meu">My own website</p>
+          </figcaption>
+        </figure>
+        <figure class="piece piece--cta">
+          <div class="piece__media"><strong data-ro="Proiectul tău poate fi următorul.">Your project could be
+              next.</strong><a href="#contact" data-ro="Hai să vorbim ↗">Let's talk ↗</a></div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- galeria unei lucrări cu mai multe imagini (deschisă din .piece__open, main.js) -->
+    <div class="lb" hidden role="dialog" aria-modal="true" aria-label="Bogdy x Andrei — Everest" data-gallery="everest">
+      <button type="button" class="lb__close" aria-label="Close"><span aria-hidden="true">✕</span></button>
+      <div class="lb__row">
+        <img src="lucrari/everest-cover.webp" alt="Everest cover art: Bogdy and Andrei in black hoodies, red chrome title"
+          loading="lazy">
+        <img src="lucrari/everest-wide.webp" alt="Everest wide 16:9 version of the cover art" loading="lazy">
+        <img src="lucrari/everest-vinyl.webp" alt="Everest cover art on a vinyl sleeve mockup" loading="lazy">
+      </div>
+      <p class="lb__cap">Bogdy x Andrei — Everest <span>Official song cover art</span></p>
+    </div>
+  </div>
+  <!-- Cookie-uri: site-ul nu pune cookie-uri de urmărire, așa că bannerul doar informează (nu e nimic de refuzat) -->
+  <div class="cookie" role="region" aria-label="Cookies">
+    <p data-ro="Aici nu sunt cookie-uri de urmărire sau reclame. Site-ul ține minte doar că ai văzut acest mesaj.">No
+      tracking or advertising cookies here. The site only remembers that you've seen this notice.</p>
+    <div class="cookie__actions">
+      <button type="button" class="cookie__more" data-legal data-ro="Detalii">Details</button>
+      <button type="button" class="cookie__ok" data-ro="Am înțeles">Got it</button>
+    </div>
+  </div>
+
+  <dialog class="legal" aria-labelledby="legal-title" data-lenis-prevent>
+    <header class="legal__head">
+      <p class="legal__eyebrow" data-ro="Actualizat 18.10.2026">Updated 18.10.2026</p>
+      <h2 id="legal-title" data-ro="Informații <em>legale.</em>">Legal <em>info.</em></h2>
+      <button type="button" class="legal__close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg></button>
+    </header>
+
+    <section class="legal__sec"><span class="legal__num">01</span>
+      <h3 data-ro="Confidențialitate">Privacy</h3>
+      <div>
+        <p
+          data-ro="Site-ul este administrat de Ianis (ianisgfx), designer grafic, web designer &amp; developer din România. Pentru orice întrebare despre datele tale, scrie la ianisiacob688@yahoo.com.">
+          This site is run by Ianis (ianisgfx), a graphic designer, web designer &amp; developer based in Romania. For any question about your
+          data, write to ianisiacob688@yahoo.com.</p>
+        <p
+          data-ro="Site-ul nu are formulare, conturi sau statistici. Prelucrez doar datele pe care mi le trimiți tu prin email, Instagram sau WhatsApp (nume, contact, detaliile proiectului), doar ca să-ți răspund și să lucrăm împreună, și nu le dau nimănui.">
+          The site has no forms, accounts or analytics. I only process the data you send me by email, Instagram or
+          WhatsApp (name, contact, project details), only to reply and work with you, and I don't share it with anyone.
+        </p>
+        <p
+          data-ro="Site-ul e găzduit pe GitHub Pages, iar fonturile și scripturile se încarcă de la Google Fonts și jsDelivr. Ca orice server, acestea primesc adresa ta IP când pagina se deschide.">
+          The site is hosted on GitHub Pages, and fonts and scripts load from Google Fonts and jsDelivr. Like any
+          server, they receive your IP address when the page loads.</p>
+        <p
+          data-ro="Conform GDPR, ai dreptul să ceri acces la datele tale, corectarea sau ștergerea lor și poți depune plângere la ANSPDCP (dataprotection.ro).">
+          Under the GDPR you can ask to access, correct or delete your data, and you can complain to the Romanian
+          authority ANSPDCP (dataprotection.ro).</p>
+      </div>
+    </section>
+
+    <section class="legal__sec"><span class="legal__num">02</span>
+      <h3 data-ro="Cookie-uri">Cookies</h3>
+      <div>
+        <p
+          data-ro="Site-ul nu folosește cookie-uri. Salvează în browserul tău (localStorage) o singură valoare, „cookies”, ca să nu-ți mai arate mesajul despre cookie-uri. O poți șterge oricând din setările browserului.">
+          The site uses no cookies. It saves a single value in your browser (localStorage), “cookies”, so the cookie
+          notice doesn't show again. You can clear it anytime from your browser settings.</p>
+      </div>
+    </section>
+
+    <section class="legal__sec"><span class="legal__num">03</span>
+      <h3 data-ro="Drepturi de autor">Copyright</h3>
+      <div>
+        <p
+          data-ro="Lucrările, logo-ul și textele de pe site îmi aparțin sau aparțin clienților mei. Nu le folosi fără acordul scris.">
+          The work, logo and texts on this site belong to me or my clients. Please don't use them without written
+          permission.</p>
+        <p
+          data-ro="Fotografiile cu laptopul și telefonul din Showcase sunt de Julian Hochgesang și Swello, de pe Unsplash.">
+          The laptop and phone photos in the Showcase are by Julian Hochgesang and Swello, from Unsplash.</p>
+      </div>
+    </section>
+  </dialog>
 
   <script>
     // Limba: site-ul pornește mereu în engleză; varianta engleză se păstrează în data-en (main.js schimbă limba pe loc)
@@ -121,6 +511,9 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"></script>
   <script src="bg.js"></script>
+  <script src="svx3d.js"></script>
+  <script src="prism.js"></script>
   <script src="main.js"></script>
 </body>
+
 </html>

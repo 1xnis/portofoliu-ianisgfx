@@ -10,7 +10,7 @@
   <title>ianisgfx — cub (probă)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@500;700;800&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; background: #0e0a0a; }
     canvas { position: fixed; inset: 0; display: block; visibility: hidden; opacity: 0; }
@@ -143,22 +143,34 @@
     };
     scene.add(page);
 
-    // Desenează în `shot` ce se vede acum în site: fundal, butoane, imagini și fiecare cuvânt la poziția lui.
+    // Desenează în `fg` ce se vede acum în site: butoane, imagini și fiecare cuvânt la poziția lui.
     // Se face la click (~6 ms: stilurile se citesc o singură dată pe element), deci e exact pagina de atunci.
+    // Fundalul lichid se adaugă separat, în compose(), la fiecare cadru al intrării: curge mai departe, deci
+    // la trecerea pe site-ul real copia și originalul au exact același fundal.
+    const fg = document.createElement("canvas");
+    let bgCv = null;
+    // SVG-urile steagurilor, transformate în imagini o dată la încărcare (snapshot() e sincron, nu le poate aștepta)
+    const flags = new Map();
+    site.addEventListener("load", () => site.contentDocument.querySelectorAll("svg.lang__flag").forEach((s) => {
+      const x = s.cloneNode(true), img = new Image();
+      x.setAttribute("xmlns", "http://www.w3.org/2000/svg"); x.setAttribute("width", 64); x.setAttribute("height", 64);
+      img.src = "data:image/svg+xml," + encodeURIComponent(x.outerHTML);
+      flags.set(s, img);
+    }));
+    function compose() {
+      const c = shot.getContext("2d");
+      c.fillStyle = "#0e0a0a"; c.fillRect(0, 0, shot.width, shot.height);
+      if (bgCv) c.drawImage(bgCv, 0, 0, shot.width, shot.height); // bg.js păstrează bufferul WebGL ca să poată fi copiat
+      c.drawImage(fg, 0, 0);
+      shotTex.needsUpdate = true;
+    }
     function snapshot() {
       const doc = site.contentDocument, win = site.contentWindow;
       const W = 1920, H = Math.round((W * innerHeight) / innerWidth), k = W / innerWidth;
-      shot.width = W; shot.height = H;
-      const c = shot.getContext("2d");
+      shot.width = fg.width = W; shot.height = fg.height = H;
+      bgCv = doc.querySelector("canvas.bg");
+      const c = fg.getContext("2d");
       c.setTransform(k, 0, 0, k, 0, 0);
-      c.fillStyle = "#0e0a0a"; c.fillRect(0, 0, innerWidth, innerHeight);
-      // fundalul lichid nu se poate copia (e WebGL în alt context): îl imităm cu pete roșii estompate
-      [[0.7, 0.25, 0.6, "rgba(160,25,30,.55)"], [0.25, 0.7, 0.5, "rgba(120,15,22,.5)"], [0.55, 0.6, 0.35, "rgba(255,79,69,.18)"]]
-        .forEach(([x, y, r, col]) => {
-          const R = Math.max(innerWidth, innerHeight) * r, gr = c.createRadialGradient(x * innerWidth, y * innerHeight, 0, x * innerWidth, y * innerHeight, R);
-          gr.addColorStop(0, col); gr.addColorStop(1, "rgba(14,10,10,0)");
-          c.fillStyle = gr; c.fillRect(0, 0, innerWidth, innerHeight);
-        });
       const styles = new Map(), opac = new Map();
       const css = (el) => styles.get(el) || (styles.set(el, win.getComputedStyle(el)), styles.get(el));
       const op = (el) => { // opacitatea reală (cu a părinților); 0 = ascuns
@@ -182,6 +194,11 @@
           c.beginPath(); c.roundRect(r.left, r.top, r.width, r.height, Math.min(parseFloat(cs.borderTopLeftRadius) || 0, r.height / 2)); c.fill();
         }
         if (el.tagName === "IMG" && el.complete) c.drawImage(el, r.left, r.top, r.width, r.height);
+        const flag = flags.get(el);
+        if (flag?.complete) { // steagurile rotunde de la butonul de limbă
+          c.save(); c.beginPath(); c.arc(r.left + r.width / 2, r.top + r.height / 2, r.width / 2, 0, Math.PI * 2); c.clip();
+          c.drawImage(flag, r.left, r.top, r.width, r.height); c.restore();
+        }
         // cercul roșu cu săgeată din butoane e desenat prin CSS (::before + svg), deci îl refacem de mână
         if (el.matches(".btn__icon")) {
           const cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width / 2;
@@ -214,7 +231,7 @@
       }
       c.globalAlpha = 1;
       shotTex.dispose(); // canvasul și-a schimbat mărimea: textura se realocă pe GPU
-      shotTex.needsUpdate = true;
+      compose();
     }
 
     const resize = () => {
@@ -264,6 +281,7 @@
       cube.scale.setScalar(damp(cube.scale.x, s, 6, dt));
       hint.style.setProperty("--dx", (1 + tilt.rotation.y * 3).toFixed(2) + "px");
       hint.style.setProperty("--dy", (tilt.rotation.x * 2).toFixed(2) + "px");
+      if (state === "entering") compose();
       renderer.render(scene, camera);
     };
 
